@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="id" class="dark theme-indigo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SanoQuizy - Interactive Quiz Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* Konfigurasi Tema & CSS Variables */
+        :root {
+            --font-main: 'Poppins', sans-serif;
+            
+            /* Theme Colors - Default Indigo */
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --primary-glow: rgba(79, 70, 229, 0.4);
+            
+            /* Status Colors */
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        /* Color Themes */
+        html.theme-indigo { --primary: #4f46e5; --primary-light: #818cf8; --primary-dark: #3730a3; --primary-glow: rgba(79, 70, 229, 0.4); }
+        html.theme-emerald { --primary: #10b981; --primary-light: #34d399; --primary-dark: #047857; --primary-glow: rgba(16, 185, 129, 0.4); }
+        html.theme-rose { --primary: #e11d48; --primary-light: #fb7185; --primary-dark: #be123c; --primary-glow: rgba(225, 29, 72, 0.4); }
+        html.theme-amber { --primary: #d97706; --primary-light: #fbbf24; --primary-dark: #b45309; --primary-glow: rgba(217, 119, 6, 0.4); }
+        html.theme-sky { --primary: #0284c7; --primary-light: #38bdf8; --primary-dark: #0369a1; --primary-glow: rgba(2, 132, 199, 0.4); }
+
+        body {
+            font-family: var(--font-main);
+            transition: background-color 0.4s ease, color 0.4s ease;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        html.dark .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Dynamic Colors based on Custom Props */
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .hover\:bg-primary-dark:hover { background-color: var(--primary-dark); }
+        .border-primary { border-color: var(--primary); }
+        .shadow-glow { box-shadow: 0 0 20px var(--primary-glow); }
+        .ring-primary { --tw-ring-color: var(--primary); }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pop { 0% { transform: scale(0.95); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
+        .animate-slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-pop { animation: pop 0.3s ease-out; }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 10px; }
+        
+        /* Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        html.dark input[type=range]::-webkit-slider-runnable-track {
+            background: #334155;
+        }
+
+        /* Particle Container */
+        #particles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -1; overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            background: var(--primary);
+            border-radius: 50%;
+            filter: blur(1px);
+        }
+
+        /* Confetti Container */
+        #confetti {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 100; overflow: hidden; display: none;
+        }
+
+        /* Input styling */
+        .glass-input {
+            background: rgba(255,255,255,0.5);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .glass-input:focus {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+        html.dark .glass-input {
+            background: rgba(0,0,0,0.3);
+            color: white;
+        }
+        html.dark .glass-input:focus {
+            background: rgba(0,0,0,0.5);
+        }
+
+        /* Select styling */
+        select.glass-input option {
+            background: white;
+            color: black;
+        }
+        html.dark select.glass-input option {
+            background: #1e293b;
+            color: white;
+        }
+
+        /* Answer Buttons */
+        .btn-answer {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+        }
+        .btn-answer:hover:not(:disabled) {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+        .btn-answer:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        .btn-answer.selected {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .btn-answer.correct {
+            background-color: var(--success);
+            border-color: var(--success);
+            color: white;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+        }
+        .btn-answer.wrong {
+            background-color: var(--danger);
+            border-color: var(--danger);
+            color: white;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Loader */
+        .loader {
+            border: 4px solid rgba(255,255,255,0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Dynamic gradient background */
+        .bg-dynamic {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+        }
+        html.dark .bg-dynamic {
+            background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+        }
+    </style>
+</head>
+<body class="bg-dynamic text-slate-800 dark:text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Latar Belakang Partikel -->
+    <div id="particles"></div>
+    <div id="confetti"></div>
+
+    <!-- Container Utama App -->
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 relative overflow-hidden flex flex-col min-h-[500px]">
+        
+        <!-- Header (Logo & Settings) -->
+        <header class="flex justify-between items-center mb-6 z-10">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="app.navigate('welcome')">
+                <div class="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xl shadow-glow">
+                    S
+                </div>
+                <h1 class="font-bold text-xl tracking-tight">Sano<span class="text-primary">Quizy</span></h1>
+            </div>
+            <button onclick="app.openSettings()" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 transition">
+                <i class="fas fa-cog text-slate-500 dark:text-slate-400"></i>
+            </button>
+        </header>
+
+        <!-- AREA KONTEN -->
+        <main id="app-content" class="flex-grow flex flex-col relative z-10">
+            
+            <!-- SCREEN 1: WELCOME & PROFILE -->
+            <section id="screen-welcome" class="flex flex-col items-center justify-center flex-grow animate-slide-up text-center space-y-6">
+                <div class="relative group cursor-pointer" onclick="app.randomizeAvatar()">
+                    <div id="user-avatar" class="text-6xl mb-2 hover:scale-110 transition-transform duration-300">😎</div>
+                    <div class="absolute -bottom-2 -right-2 bg-primary text-white text-xs p-1 rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                </div>
+                
+                <div class="space-y-1 w-full">
+                    <h2 class="text-2xl font-bold" data-i18n="greeting">Halo,</h2>
+                    <input type="text" id="user-name" placeholder="Nama Kamu" class="glass-input w-full text-center text-xl font-semibold py-2 rounded-xl outline-none" onchange="app.saveProfile()">
+                </div>
+
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-2 gap-3 w-full mt-4">
+                    <div class="bg-black/5 dark:bg-white/5 rounded-2xl p-3 text-center border border-black/5 dark:border-white/5">
+                        <p class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="bestScore">Skor Terbaik</p>
+                        <p id="stat-best" class="text-2xl font-bold text-primary">0</p>
+                    </div>
+                    <div class="bg-black/5 dark:bg-white/5 rounded-2xl p-3 text-center border border-black/5 dark:border-white/5">
+                        <p class="text-xs text-slate-500 uppercase tracking-wide" data-i18n="streak">Win Streak</p>
+                        <p class="text-2xl font-bold text-amber-500"><i class="fas fa-fire mr-1 text-sm"></i><span id="stat-streak">0</span></p>
+                    </div>
+                </div>
+
+                <button onclick="app.navigate('setup')" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-2xl shadow-glow transition-all transform active:scale-95 text-lg flex items-center justify-center gap-2 mt-4">
+                    <i class="fas fa-play"></i> <span data-i18n="btnStart">Mulai Main</span>
+                </button>
+            </section>
+
+            <!-- SCREEN 2: SETUP QUIZ -->
+            <section id="screen-setup" class="hidden flex-col flex-grow animate-slide-up space-y-5">
+                <h2 class="text-xl font-bold border-b border-black/10 dark:border-white/10 pb-2" data-i18n="setupTitle">Pengaturan Kuis</h2>
+                
+                <!-- Category -->
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-600 dark:text-slate-300" data-i18n="category">Kategori</label>
+                    <select id="setup-category" class="glass-input w-full p-3 rounded-xl outline-none cursor-pointer">
+                        <option value="" data-i18n="catAny">Semua Kategori</option>
+                        <option value="9" data-i18n="catGK">Pengetahuan Umum</option>
+                        <option value="17" data-i18n="catSci">Sains & Alam</option>
+                        <option value="15" data-i18n="catGame">Video Games</option>
+                        <option value="31" data-i18n="catAnime">Anime & Manga</option>
+                        <option value="21" data-i18n="catSport">Olahraga</option>
+                        <option value="23" data-i18n="catHistory">Sejarah</option>
+                    </select>
+                </div>
+
+                <!-- Difficulty -->
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-600 dark:text-slate-300" data-i18n="difficulty">Tingkat Kesulitan</label>
+                    <div class="flex gap-2 bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+                        <button onclick="app.setDifficulty('easy')" id="diff-easy" class="flex-1 py-2 rounded-lg text-sm font-medium transition active-diff" data-i18n="diffEasy">Mudah</button>
+                        <button onclick="app.setDifficulty('medium')" id="diff-medium" class="flex-1 py-2 rounded-lg text-sm font-medium transition" data-i18n="diffMedium">Sedang</button>
+                        <button onclick="app.setDifficulty('hard')" id="diff-hard" class="flex-1 py-2 rounded-lg text-sm font-medium transition" data-i18n="diffHard">Sulit</button>
+                    </div>
+                </div>
+
+                <!-- Amount -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <label class="text-sm font-medium text-slate-600 dark:text-slate-300" data-i18n="amount">Jumlah Soal</label>
+                        <span id="amount-val" class="font-bold text-primary bg-primary/10 px-2 py-1 rounded-md text-sm">10</span>
+                    </div>
+                    <input type="range" id="setup-amount" min="5" max="20" step="5" value="10" oninput="document.getElementById('amount-val').innerText = this.value; app.playSound('click')">
+                </div>
+
+                <!-- Type -->
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-slate-600 dark:text-slate-300" data-i18n="type">Tipe Soal</label>
+                    <select id="setup-type" class="glass-input w-full p-3 rounded-xl outline-none cursor-pointer">
+                        <option value="multiple" data-i18n="typeMultiple">Pilihan Ganda</option>
+                        <option value="boolean" data-i18n="typeBoolean">Benar / Salah</option>
+                    </select>
+                </div>
+
+                <div class="flex-grow"></div>
+
+                <button onclick="app.startQuiz()" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-xl shadow-glow transition-all transform active:scale-95 text-lg flex items-center justify-center gap-2">
+                    <i class="fas fa-rocket"></i> <span data-i18n="btnGo">Mulai Sekarang</span>
+                </button>
+            </section>
+
+            <!-- SCREEN 3: QUIZ (LOADING & PLAY) -->
+            <section id="screen-quiz" class="hidden flex-col flex-grow w-full relative">
+                
+                <!-- Loading State -->
+                <div id="quiz-loading" class="hidden absolute inset-0 flex flex-col items-center justify-center z-20 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl">
+                    <div class="loader mb-4"></div>
+                    <p class="font-medium animate-pulse" data-i18n="loading">Menyiapkan soal...</p>
+                </div>
+
+                <!-- Quiz Interface -->
+                <div id="quiz-interface" class="flex flex-col flex-grow opacity-0 transition-opacity duration-300">
+                    <!-- Progress & Timer -->
+                    <div class="flex justify-between items-center mb-4 text-sm font-semibold">
+                        <div class="bg-black/5 dark:bg-white/10 px-3 py-1 rounded-full text-slate-600 dark:text-slate-300">
+                            <span data-i18n="question">Soal</span> <span id="q-current" class="text-primary">1</span>/<span id="q-total">10</span>
+                        </div>
+                        <div id="timer-badge" class="bg-black/5 dark:bg-white/10 px-3 py-1 rounded-full flex items-center gap-1 transition-colors">
+                            <i class="fas fa-stopwatch text-primary"></i> <span id="time-left">15</span>s
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full mb-6 overflow-hidden">
+                        <div id="progress-bar" class="bg-primary h-full rounded-full transition-all duration-300 ease-out" style="width: 10%;"></div>
+                    </div>
+
+                    <!-- Question Container -->
+                    <div class="flex-grow flex flex-col">
+                        <div class="bg-white/40 dark:bg-black/20 p-5 rounded-2xl mb-6 shadow-sm border border-white/40 dark:border-white/5">
+                            <p id="question-category" class="text-xs uppercase tracking-wider text-primary font-bold mb-2">Category</p>
+                            <h3 id="question-text" class="text-lg md:text-xl font-semibold leading-relaxed">Pertanyaan akan muncul di sini?</h3>
+                        </div>
+
+                        <!-- Answers Grid -->
+                        <div id="answers-grid" class="grid grid-cols-1 gap-3 mt-auto">
+                            <!-- Buttons generated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCREEN 4: RESULT -->
+            <section id="screen-result" class="hidden flex-col flex-grow items-center justify-center animate-slide-up text-center space-y-6">
+                
+                <div class="relative">
+                    <svg class="w-32 h-32 transform -rotate-90">
+                        <circle cx="64" cy="64" r="56" stroke="currentColor" stroke-width="8" fill="transparent" class="text-black/10 dark:text-white/10"/>
+                        <circle id="score-circle" cx="64" cy="64" r="56" stroke="currentColor" stroke-width="8" fill="transparent" stroke-dasharray="351.85" stroke-dashoffset="351.85" class="text-primary transition-all duration-1000 ease-out"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span id="result-score" class="text-4xl font-bold text-primary">0</span>
+                        <span class="text-xs font-semibold text-slate-500 uppercase">Skor</span>
+                    </div>
+                </div>
+
+                <div id="result-message" class="text-xl font-bold">Kerja Bagus!</div>
+
+                <div class="grid grid-cols-2 gap-4 w-full bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-black/5 dark:border-white/5">
+                    <div>
+                        <p class="text-sm text-slate-500" data-i18n="resCorrect">Benar</p>
+                        <p id="res-correct" class="text-2xl font-bold text-success">0</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500" data-i18n="resWrong">Salah</p>
+                        <p id="res-wrong" class="text-2xl font-bold text-danger">0</p>
+                    </div>
+                </div>
+
+                <div id="new-record-badge" class="hidden bg-warning/20 text-warning px-4 py-2 rounded-full font-bold text-sm animate-pulse border border-warning/50">
+                    <i class="fas fa-trophy mr-1"></i> <span data-i18n="newRecord">Rekor Baru!</span>
+                </div>
+
+                <div class="flex gap-3 w-full mt-4">
+                    <button onclick="app.navigate('setup')" class="flex-1 bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 py-3 rounded-xl font-semibold transition active:scale-95 text-slate-700 dark:text-slate-200" data-i18n="btnRetry">
+                        Coba Lagi
+                    </button>
+                    <button onclick="app.navigate('welcome')" class="flex-1 bg-primary hover:bg-primary-dark text-white py-3 rounded-xl font-semibold shadow-glow transition active:scale-95" data-i18n="btnHome">
+                        Beranda
+                    </button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL SETTINGS -->
+    <div id="modal-settings" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl transform scale-95 transition-transform" id="modal-settings-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold" data-i18n="settings">Pengaturan</h3>
+                <button onclick="app.closeSettings()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="space-y-5">
+                <!-- Theme Mode -->
+                <div class="flex justify-between items-center">
+                    <span class="font-medium" data-i18n="darkMode">Mode Gelap</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggle-dark" class="sr-only peer" onchange="app.toggleThemeMode()">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+
+                <!-- Sound -->
+                <div class="flex justify-between items-center">
+                    <span class="font-medium" data-i18n="sound">Efek Suara</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggle-sound" class="sr-only peer" onchange="app.toggleSound()">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+
+                <!-- Language -->
+                <div class="flex justify-between items-center">
+                    <span class="font-medium" data-i18n="language">Bahasa</span>
+                    <div class="bg-slate-100 dark:bg-slate-700 p-1 rounded-lg flex text-sm">
+                        <button onclick="app.setLang('id')" id="lang-id" class="px-3 py-1 rounded-md transition font-bold bg-white dark:bg-slate-600 shadow-sm">ID</button>
+                        <button onclick="app.setLang('en')" id="lang-en" class="px-3 py-1 rounded-md transition text-slate-500">EN</button>
+                    </div>
+                </div>
+
+                <!-- Auto Translate -->
+                <div class="flex justify-between items-center">
+                    <span class="font-medium" data-i18n="autoTranslate">Terjemahkan Soal</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggle-translate" class="sr-only peer" onchange="app.toggleTranslate()">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+
+                <!-- Accent Color -->
+                <div>
+                    <span class="font-medium block mb-2" data-i18n="accentColor">Warna Aksen</span>
+                    <div class="flex justify-between gap-2">
+                        <button onclick="app.setColor('indigo')" class="w-10 h-10 rounded-full bg-[#4f46e5] border-2 border-transparent focus:border-white focus:ring-2 ring-offset-2 ring-[#4f46e5] ring-offset-white dark:ring-offset-slate-800 color-btn" data-color="indigo"></button>
+                        <button onclick="app.setColor('emerald')" class="w-10 h-10 rounded-full bg-[#10b981] border-2 border-transparent focus:border-white focus:ring-2 ring-offset-2 ring-[#10b981] ring-offset-white dark:ring-offset-slate-800 color-btn" data-color="emerald"></button>
+                        <button onclick="app.setColor('rose')" class="w-10 h-10 rounded-full bg-[#e11d48] border-2 border-transparent focus:border-white focus:ring-2 ring-offset-2 ring-[#e11d48] ring-offset-white dark:ring-offset-slate-800 color-btn" data-color="rose"></button>
+                        <button onclick="app.setColor('amber')" class="w-10 h-10 rounded-full bg-[#d97706] border-2 border-transparent focus:border-white focus:ring-2 ring-offset-2 ring-[#d97706] ring-offset-white dark:ring-offset-slate-800 color-btn" data-color="amber"></button>
+                        <button onclick="app.setColor('sky')" class="w-10 h-10 rounded-full bg-[#0284c7] border-2 border-transparent focus:border-white focus:ring-2 ring-offset-2 ring-[#0284c7] ring-offset-white dark:ring-offset-slate-800 color-btn" data-color="sky"></button>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <button onclick="app.resetData()" class="w-full py-2 text-danger font-medium hover:bg-danger/10 rounded-lg transition" data-i18n="resetData">Reset Data Profil</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. STATE MANAGEMENT ---
+        const DEFAULT_STATE = {
+            user: { name: '', avatar: '😎', bestScore: 0, streak: 0 },
+            settings: { themeMode: 'dark', color: 'indigo', lang: 'id', sound: true, autoTranslate: true },
+            setup: { difficulty: 'medium' }
+        };
+
+        const state = {
+            ...DEFAULT_STATE,
+            quiz: {
+                questions: [], currentIdx: 0, score: 0, correctCount: 0,
+                timerInterval: null, timeLeft: 15, isAnswering: false
+            }
+        };
+
+        const emojis = ['😎', '🤓', '🤠', '👽', '👻', '🤖', '🦊', '🦖', '🚀', '🌟', '🔥', '🧠'];
+
+        // --- 2. i18n (DICTIONARY) ---
+        const i18n = {
+            id: {
+                greeting: "Halo,", btnStart: "Mulai Main", bestScore: "Skor Terbaik", streak: "Win Streak",
+                setupTitle: "Pengaturan Kuis", category: "Kategori", catAny: "Semua Kategori",
+                catGK: "Pengetahuan Umum", catSci: "Sains & Alam", catGame: "Video Games",
+                catAnime: "Anime & Manga", catSport: "Olahraga", catHistory: "Sejarah",
+                difficulty: "Tingkat Kesulitan", diffEasy: "Mudah", diffMedium: "Sedang", diffHard: "Sulit",
+                amount: "Jumlah Soal", type: "Tipe Soal", typeMultiple: "Pilihan Ganda", typeBoolean: "Benar / Salah",
+                btnGo: "Mulai Sekarang", loading: "Menyiapkan soal...", question: "Soal",
+                resCorrect: "Benar", resWrong: "Salah", newRecord: "Rekor Baru!", btnRetry: "Coba Lagi", btnHome: "Beranda",
+                settings: "Pengaturan", darkMode: "Mode Gelap", sound: "Efek Suara", language: "Bahasa",
+                autoTranslate: "Terjemahkan Soal", accentColor: "Warna Aksen", resetData: "Reset Data Profil",
+                msgPerfect: "Sempurna! 🌟", msgGood: "Kerja Bagus! 👍", msgBad: "Ayo Belajar Lagi! 📚"
+            },
+            en: {
+                greeting: "Hello,", btnStart: "Start Playing", bestScore: "Best Score", streak: "Win Streak",
+                setupTitle: "Quiz Setup", category: "Category", catAny: "Any Category",
+                catGK: "General Knowledge", catSci: "Science & Nature", catGame: "Video Games",
+                catAnime: "Anime & Manga", catSport: "Sports", catHistory: "History",
+                difficulty: "Difficulty", diffEasy: "Easy", diffMedium: "Medium", diffHard: "Hard",
+                amount: "Amount", type: "Type", typeMultiple: "Multiple Choice", typeBoolean: "True / False",
+                btnGo: "Start Now", loading: "Preparing questions...", question: "Question",
+                resCorrect: "Correct", resWrong: "Wrong", newRecord: "New Record!", btnRetry: "Try Again", btnHome: "Home",
+                settings: "Settings", darkMode: "Dark Mode", sound: "Sound Effects", language: "Language",
+                autoTranslate: "Auto Translate", accentColor: "Accent Color", resetData: "Reset Profile Data",
+                msgPerfect: "Perfect! 🌟", msgGood: "Good Job! 👍", msgBad: "Keep Learning! 📚"
+            }
+        };
+
+        // --- 3. AUDIO SYNTHESIZER (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const audioEngine = {
+            play(type) {
+                if (!state.settings.sound) return;
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                switch(type) {
+                    case 'click':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(600, now);
+                        osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                        gain.gain.setValueAtTime(0.3, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                        osc.start(now); osc.stop(now + 0.1);
+                        break;
+                    case 'correct':
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(400, now);
+                        osc.frequency.setValueAtTime(600, now + 0.1);
+                        osc.frequency.setValueAtTime(800, now + 0.2);
+                        gain.gain.setValueAtTime(0.3, now);
+                        gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                        osc.start(now); osc.stop(now + 0.4);
+                        break;
+                    case 'wrong':
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(300, now);
+                        osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                        gain.gain.setValueAtTime(0.3, now);
+                        gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                        osc.start(now); osc.stop(now + 0.3);
+                        break;
+                    case 'finish':
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(523.25, now); // C5
+                        osc.frequency.setValueAtTime(659.25, now + 0.2); // E5
+                        osc.frequency.setValueAtTime(783.99, now + 0.4); // G5
+                        gain.gain.setValueAtTime(0.2, now);
+                        gain.gain.linearRampToValueAtTime(0, now + 0.8);
+                        osc.start(now); osc.stop(now + 0.8);
+                        break;
+                }
+            }
+        };
+
+        // --- 4. CORE APPLICATION LOGIC ---
+        const app = {
+            init() {
+                this.loadData();
+                this.applySettings();
+                this.updateUI();
+                this.initParticles();
+                
+                // Allow audio context to start on first interaction
+                document.body.addEventListener('click', () => {
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
+                }, { once: true });
+            },
+
+            // --- DATA & SETTINGS ---
+            loadData() {
+                const saved = localStorage.getItem('sanoquizy_data');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    state.user = { ...state.user, ...parsed.user };
+                    state.settings = { ...state.settings, ...parsed.settings };
+                }
+                
+                // Set initial diff button
+                this.setDifficulty(state.setup.difficulty, false);
+            },
+            saveData() {
+                localStorage.setItem('sanoquizy_data', JSON.stringify({
+                    user: state.user,
+                    settings: state.settings
+                }));
+            },
+            saveProfile() {
+                state.user.name = document.getElementById('user-name').value;
+                this.saveData();
+            },
+            randomizeAvatar() {
+                this.playSound('click');
+                let newAvatar;
+                do { newAvatar = emojis[Math.floor(Math.random() * emojis.length)]; } 
+                while (newAvatar === state.user.avatar);
+                state.user.avatar = newAvatar;
+                document.getElementById('user-avatar').innerText = newAvatar;
+                this.saveData();
+                
+                // Animation pop
+                const avatarEl = document.getElementById('user-avatar');
+                avatarEl.classList.remove('animate-pop');
+                void avatarEl.offsetWidth; // trigger reflow
+                avatarEl.classList.add('animate-pop');
+            },
+            resetData() {
+                if(confirm(state.settings.lang === 'id' ? 'Hapus semua data profil?' : 'Delete all profile data?')) {
+                    localStorage.removeItem('sanoquizy_data');
+                    location.reload();
+                }
+            },
+
+            // --- THEME & UI UPDATES ---
+            applySettings() {
+                const html = document.documentElement;
+                
+                // Theme Mode
+                if (state.settings.themeMode === 'dark') {
+                    html.classList.add('dark');
+                    document.getElementById('toggle-dark').checked = true;
+                } else {
+                    html.classList.remove('dark');
+                    document.getElementById('toggle-dark').checked = false;
+                }
+
+                // Color
+                html.className = html.className.replace(/theme-\w+/g, '').trim();
+                html.classList.add(`theme-${state.settings.color}`);
+                
+                // Active Color Btn
+                document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('ring-2', 'border-white'));
+                const activeBtn = document.querySelector(`.color-btn[data-color="${state.settings.color}"]`);
+                if(activeBtn) activeBtn.classList.add('ring-2', 'border-white');
+
+                // Sound
+                document.getElementById('toggle-sound').checked = state.settings.sound;
+
+                // Auto Translate
+                document.getElementById('toggle-translate').checked = state.settings.autoTranslate;
+
+                // Lang Toggles
+                document.getElementById('lang-id').className = state.settings.lang === 'id' ? 'px-3 py-1 rounded-md transition font-bold bg-white dark:bg-slate-600 shadow-sm' : 'px-3 py-1 rounded-md transition text-slate-500';
+                document.getElementById('lang-en').className = state.settings.lang === 'en' ? 'px-3 py-1 rounded-md transition font-bold bg-white dark:bg-slate-600 shadow-sm' : 'px-3 py-1 rounded-md transition text-slate-500';
+
+                this.translate();
+            },
+            updateUI() {
+                document.getElementById('user-name').value = state.user.name;
+                document.getElementById('user-avatar').innerText = state.user.avatar;
+                document.getElementById('stat-best').innerText = state.user.bestScore;
+                document.getElementById('stat-streak').innerText = state.user.streak;
+            },
+            translate() {
+                const dict = i18n[state.settings.lang];
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (dict[key]) el.innerText = dict[key];
+                });
+                document.getElementById('user-name').placeholder = state.settings.lang === 'id' ? 'Nama Kamu' : 'Your Name';
+            },
+            
+            // --- SETTINGS HANDLERS ---
+            toggleThemeMode() {
+                state.settings.themeMode = document.getElementById('toggle-dark').checked ? 'dark' : 'light';
+                this.playSound('click');
+                this.applySettings();
+                this.saveData();
+            },
+            setColor(color) {
+                state.settings.color = color;
+                this.playSound('click');
+                this.applySettings();
+                this.saveData();
+            },
+            setLang(lang) {
+                state.settings.lang = lang;
+                this.playSound('click');
+                this.applySettings();
+                this.saveData();
+            },
+            toggleSound() {
+                state.settings.sound = document.getElementById('toggle-sound').checked;
+                if(state.settings.sound) this.playSound('click');
+                this.saveData();
+            },
+            toggleTranslate() {
+                state.settings.autoTranslate = document.getElementById('toggle-translate').checked;
+                this.playSound('click');
+                this.saveData();
+            },
+            setDifficulty(level, playSound = true) {
+                if(playSound) this.playSound('click');
+                state.setup.difficulty = level;
+                
+                ['easy', 'medium', 'hard'].forEach(l => {
+                    const btn = document.getElementById(`diff-${l}`);
+                    btn.className = `flex-1 py-2 rounded-lg text-sm font-medium transition ${l === level ? 'bg-white dark:bg-slate-700 shadow-sm text-primary font-bold' : 'text-slate-500 hover:bg-black/5 dark:hover:bg-white/5'}`;
+                });
+            },
+            playSound(type) { audioEngine.play(type); },
+
+            // --- NAVIGATION ---
+            navigate(screenId) {
+                this.playSound('click');
+                ['screen-welcome', 'screen-setup', 'screen-quiz', 'screen-result'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (id === `screen-${screenId}`) {
+                        el.classList.remove('hidden');
+                        el.classList.add('flex');
+                        // re-trigger animation
+                        el.classList.remove('animate-slide-up');
+                        void el.offsetWidth; 
+                        el.classList.add('animate-slide-up');
+                    } else {
+                        el.classList.add('hidden');
+                        el.classList.remove('flex');
+                    }
+                });
+
+                if(screenId === 'welcome') this.updateUI();
+                if(screenId !== 'quiz') this.clearTimer();
+            },
+            openSettings() {
+                this.playSound('click');
+                const modal = document.getElementById('modal-settings');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    document.getElementById('modal-settings-content').classList.remove('scale-95');
+                }, 10);
+            },
+            closeSettings() {
+                this.playSound('click');
+                const modal = document.getElementById('modal-settings');
+                modal.classList.add('opacity-0');
+                document.getElementById('modal-settings-content').classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 300);
+            },
+
+            // --- TRANSLATION API ---
+            async translateTextAPI(text) {
+                if (!text) return text;
+                try {
+                    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=id&dt=t&q=${encodeURIComponent(text)}`);
+                    const data = await res.json();
+                    return data[0].map(item => item[0]).join('');
+                } catch(e) {
+                    console.error('Translation error:', e);
+                    return text;
+                }
+            },
+
+            // --- QUIZ ENGINE ---
+            async startQuiz() {
+                this.navigate('quiz');
+                document.getElementById('quiz-loading').classList.remove('hidden');
+                document.getElementById('quiz-interface').classList.add('opacity-0');
+                
+                const amount = document.getElementById('setup-amount').value;
+                const category = document.getElementById('setup-category').value;
+                const difficulty = state.setup.difficulty;
+                const type = document.getElementById('setup-type').value;
+
+                let url = `https://opentdb.com/api.php?amount=${amount}&difficulty=${difficulty}&type=${type}`;
+                if (category) url += `&category=${category}`;
+
+                try {
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    
+                    if (data.response_code !== 0) throw new Error("API Error");
+
+                    state.quiz.questions = data.results.map(q => ({
+                        category: this.decodeHTML(q.category),
+                        question: this.decodeHTML(q.question),
+                        correct: this.decodeHTML(q.correct_answer),
+                        options: this.shuffleArray([q.correct_answer, ...q.incorrect_answers].map(this.decodeHTML))
+                    }));
+
+                    state.quiz.currentIdx = 0;
+                    state.quiz.score = 0;
+                    state.quiz.correctCount = 0;
+                    
+                    document.getElementById('q-total').innerText = amount;
+                    document.getElementById('quiz-loading').classList.add('hidden');
+                    document.getElementById('quiz-interface').classList.remove('opacity-0');
+                    
+                    this.renderQuestion();
+
+                } catch (error) {
+                    alert(state.settings.lang === 'id' ? "Gagal memuat soal. Coba ganti pengaturan." : "Failed to load questions. Change settings.");
+                    this.navigate('setup');
+                }
+            },
+
+            async renderQuestion() {
+                state.quiz.isAnswering = false;
+                this.clearTimer(); // Jeda timer saat sedang memproses/menerjemahkan
+                
+                const q = state.quiz.questions[state.quiz.currentIdx];
+                
+                document.getElementById('q-current').innerText = state.quiz.currentIdx + 1;
+                document.getElementById('question-category').innerText = q.category;
+                
+                // Progress Bar Update
+                const progress = ((state.quiz.currentIdx) / state.quiz.questions.length) * 100;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+
+                const grid = document.getElementById('answers-grid');
+                grid.innerHTML = '';
+
+                let qText = q.question;
+                let optTexts = [...q.options];
+
+                // Translation Logic
+                if (state.settings.lang === 'id' && state.settings.autoTranslate) {
+                    document.getElementById('question-text').innerHTML = '<i class="fas fa-spinner fa-spin text-primary mr-2"></i> Menerjemahkan...';
+                    
+                    try {
+                        // Proses terjemahan paralel agar cepat
+                        const [transQ, ...transOpts] = await Promise.all([
+                            this.translateTextAPI(q.question),
+                            ...q.options.map(o => this.translateTextAPI(o))
+                        ]);
+                        qText = transQ;
+                        optTexts = transOpts;
+                    } catch (e) {
+                        qText = q.question;
+                        optTexts = [...q.options];
+                    }
+                }
+
+                document.getElementById('question-text').innerText = qText;
+                
+                optTexts.forEach((optText, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-answer glass-input w-full text-left p-4 rounded-xl font-medium text-slate-700 dark:text-slate-200';
+                    btn.innerText = optText;
+                    
+                    // Simpan teks original (EN) untuk validasi benar/salah
+                    const originalAnswer = q.options[index];
+                    btn.dataset.original = originalAnswer;
+                    btn.onclick = () => this.handleAnswer(btn, originalAnswer);
+                    grid.appendChild(btn);
+                });
+
+                // Start Timer HANYA setelah teks selesai dirender
+                this.startTimer();
+                
+                // Animation
+                document.getElementById('question-text').classList.remove('animate-slide-up');
+                void document.getElementById('question-text').offsetWidth;
+                document.getElementById('question-text').classList.add('animate-slide-up');
+            },
+
+            handleAnswer(btnEl, answer) {
+                if(state.quiz.isAnswering) return;
+                state.quiz.isAnswering = true;
+                this.clearTimer();
+
+                const q = state.quiz.questions[state.quiz.currentIdx];
+                const isCorrect = answer === q.correct;
+                
+                const buttons = document.querySelectorAll('.btn-answer');
+                buttons.forEach(b => b.disabled = true); // Disable all
+
+                if (isCorrect) {
+                    this.playSound('correct');
+                    btnEl.classList.add('correct');
+                    // Base score 10 + Time bonus (max 15)
+                    const timeBonus = state.quiz.timeLeft;
+                    const diffMult = state.setup.difficulty === 'hard' ? 1.5 : (state.setup.difficulty === 'medium' ? 1.2 : 1);
+                    state.quiz.score += Math.round((10 + timeBonus) * diffMult);
+                    state.quiz.correctCount++;
+                    this.createMiniParticles(btnEl);
+                } else {
+                    this.playSound('wrong');
+                    btnEl.classList.add('wrong');
+                    // Highlight correct answer
+                    buttons.forEach(b => {
+                        if(b.dataset.original === q.correct) {
+                            setTimeout(() => { b.classList.add('correct', 'opacity-80'); }, 300);
+                        }
+                    });
+                }
+
+                setTimeout(() => {
+                    this.nextQuestion();
+                }, 1500);
+            },
+
+            nextQuestion() {
+                state.quiz.currentIdx++;
+                if (state.quiz.currentIdx < state.quiz.questions.length) {
+                    this.renderQuestion();
+                } else {
+                    this.finishQuiz();
+                }
+            },
+
+            // --- TIMER ---
+            startTimer() {
+                this.clearTimer();
+                state.quiz.timeLeft = 15;
+                const badge = document.getElementById('timer-badge');
+                badge.className = 'bg-black/5 dark:bg-white/10 px-3 py-1 rounded-full flex items-center gap-1 transition-colors text-slate-700 dark:text-slate-200';
+                this.updateTimerDisplay();
+
+                state.quiz.timerInterval = setInterval(() => {
+                    state.quiz.timeLeft--;
+                    this.updateTimerDisplay();
+
+                    if(state.quiz.timeLeft <= 5) {
+                        badge.classList.add('text-danger', 'bg-danger/10');
+                        badge.classList.remove('text-slate-700', 'dark:text-slate-200', 'bg-black/5', 'dark:bg-white/10');
+                        if(!state.quiz.isAnswering) this.playSound('click'); // Tick sound
+                    }
+
+                    if (state.quiz.timeLeft <= 0) {
+                        this.clearTimer();
+                        this.handleTimeOut();
+                    }
+                }, 1000);
+            },
+            updateTimerDisplay() {
+                document.getElementById('time-left').innerText = state.quiz.timeLeft;
+            },
+            clearTimer() {
+                if(state.quiz.timerInterval) clearInterval(state.quiz.timerInterval);
+            },
+            handleTimeOut() {
+                if(state.quiz.isAnswering) return;
+                state.quiz.isAnswering = true;
+                this.playSound('wrong');
+                
+                const q = state.quiz.questions[state.quiz.currentIdx];
+                const buttons = document.querySelectorAll('.btn-answer');
+                buttons.forEach(b => {
+                    b.disabled = true;
+                    if(b.dataset.original === q.correct) b.classList.add('correct');
+                });
+
+                setTimeout(() => { this.nextQuestion(); }, 1500);
+            },
+
+            // --- FINISH & RESULTS ---
+            finishQuiz() {
+                this.playSound('finish');
+                this.clearTimer();
+                
+                // Update Stats
+                const isNewRecord = state.quiz.score > state.user.bestScore;
+                if (isNewRecord && state.quiz.score > 0) {
+                    state.user.bestScore = state.quiz.score;
+                    document.getElementById('new-record-badge').classList.remove('hidden');
+                } else {
+                    document.getElementById('new-record-badge').classList.add('hidden');
+                }
+
+                const totalQ = state.quiz.questions.length;
+                const winRatio = state.quiz.correctCount / totalQ;
+
+                if (winRatio >= 0.7) state.user.streak++;
+                else state.user.streak = 0;
+
+                this.saveData();
+
+                // UI Update
+                document.getElementById('res-correct').innerText = state.quiz.correctCount;
+                document.getElementById('res-wrong').innerText = totalQ - state.quiz.correctCount;
+                
+                const dict = i18n[state.settings.lang];
+                const msgEl = document.getElementById('result-message');
+                if(winRatio === 1) msgEl.innerText = dict.msgPerfect;
+                else if(winRatio >= 0.5) msgEl.innerText = dict.msgGood;
+                else msgEl.innerText = dict.msgBad;
+
+                // Circular Progress Animation
+                this.navigate('result');
+                const circle = document.getElementById('score-circle');
+                const maxDash = 351.85; // 2 * pi * r (56)
+                circle.style.strokeDashoffset = maxDash;
+                
+                setTimeout(() => {
+                    // Animate Score Number
+                    this.animateValue("result-score", 0, state.quiz.score, 1000);
+                    // Animate Circle
+                    const offset = maxDash - (winRatio * maxDash);
+                    circle.style.strokeDashoffset = offset;
+                    
+                    if(winRatio >= 0.7) this.fireConfetti();
+                }, 300);
+            },
+
+            // --- UTILS & EFFECTS ---
+            decodeHTML(html) {
+                var txt = document.createElement("textarea");
+                txt.innerHTML = html;
+                return txt.value;
+            },
+            shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            },
+            animateValue(id, start, end, duration) {
+                if (start === end) return;
+                var range = end - start;
+                var current = start;
+                var increment = end > start ? Math.ceil(range / (duration/16)) : -1;
+                var stepTime = Math.abs(Math.floor(duration / range));
+                if(stepTime < 16) stepTime = 16;
+                var obj = document.getElementById(id);
+                var timer = setInterval(function() {
+                    current += increment;
+                    if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                        current = end;
+                        clearInterval(timer);
+                    }
+                    obj.innerHTML = current;
+                }, stepTime);
+            },
+            initParticles() {
+                const container = document.getElementById('particles');
+                const createParticle = () => {
+                    if(document.visibilityState === 'hidden') return;
+                    const p = document.createElement('div');
+                    p.className = 'particle opacity-20 dark:opacity-10';
+                    const size = Math.random() * 15 + 5;
+                    p.style.width = `${size}px`;
+                    p.style.height = `${size}px`;
+                    p.style.left = `${Math.random() * 100}vw`;
+                    p.style.top = '100vh';
+                    const duration = Math.random() * 10 + 10;
+                    p.style.animation = `float ${duration}s linear forwards`;
+                    
+                    container.appendChild(p);
+                    setTimeout(() => p.remove(), duration * 1000);
+                };
+                setInterval(createParticle, 800);
+            },
+            createMiniParticles(btn) {
+                const rect = btn.getBoundingClientRect();
+                for(let i=0; i<10; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'absolute bg-success rounded-full w-2 h-2 pointer-events-none';
+                    p.style.left = `${rect.left + rect.width/2}px`;
+                    p.style.top = `${rect.top + rect.height/2}px`;
+                    document.body.appendChild(p);
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = Math.random() * 50 + 20;
+                    const tx = Math.cos(angle) * velocity;
+                    const ty = Math.sin(angle) * velocity;
+                    
+                    p.animate([
+                        { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                        { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                    ], { duration: 600, easing: 'cubic-bezier(0, .9, .57, 1)' });
+                    
+                    setTimeout(() => p.remove(), 600);
+                }
+            },
+            fireConfetti() {
+                const c = document.getElementById('confetti');
+                c.style.display = 'block';
+                c.innerHTML = '';
+                const colors = ['#4f46e5', '#10b981', '#f59e0b', '#e11d48', '#38bdf8'];
+                
+                for(let i=0; i<50; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'absolute w-3 h-3';
+                    p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    p.style.left = `${Math.random() * 100}vw`;
+                    p.style.top = '-10px';
+                    p.style.opacity = Math.random() + 0.5;
+                    p.style.transform = `rotate(${Math.random()*360}deg)`;
+                    
+                    const duration = Math.random() * 2 + 2;
+                    const delay = Math.random() * 0.5;
+                    
+                    p.animate([
+                        { transform: `translate3d(0,0,0) rotate(0)`, opacity: 1 },
+                        { transform: `translate3d(${Math.random()*100-50}px, 100vh, 0) rotate(${Math.random()*720}deg)`, opacity: 0 }
+                    ], { duration: duration * 1000, delay: delay * 1000, easing: 'ease-in', fill: 'forwards' });
+                    
+                    c.appendChild(p);
+                }
+                setTimeout(() => { c.style.display = 'none'; }, 3000);
+            }
+        };
+
+        // Init App on load
+        window.onload = () => app.init();
+
+    </script>
+</body>
+</html>
